@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Monster Slayer</title>
+    <script src="https://npmcdn.com/vue/dist/vue.js"></script>
+    <link rel="stylesheet" href="css/foundation.min.css">
+    <link rel="stylesheet" href="css/app.css">
+</head>
+
+<body>
+    <div id="app">
+        <section class="row">
+            <div class="small-6 columns">
+                <h1 class="text-center">YOU</h1>
+                <div class="healthbar">
+                    <div class="healthbar text-center" style="background-color: green; margin: 0; color: white;"
+                        :style="{width:playerHealth +'%'}">
+                        {{ playerHealth }}
+                    </div>
+                </div>
+            </div>
+            <div class="small-6 columns">
+                <h1 class="text-center">MONSTER</h1>
+                <div class="healthbar">
+                    <div class="healthbar text-center" style="background-color: green; margin: 0; color: white;"
+                        :style="{width:monsterHealth + '%'}">
+                        {{monsterHealth}}
+                    </div>
+                </div>
+            </div>
+        </section>
+        <section class="row controls" v-if="!gameIsRunning">
+            <div class="small-12 columns">
+                <button id="start-game" v-on:click="startGame">START GAME</button>
+            </div>
+        </section>
+        <section class="row controls" v-else>
+            <div class="small-12 columns">
+                <button id="attack" v-on:click='attack'>ATTACK</button>
+                <button id="special-attack" v-on:click='specialAttack'>SPECIAL ATTACK</button>
+                <button id="heal" v-on:click='heal'>HEAL</button>
+                <button id="give-up" v-on:click='giveUp'>GIVE UP</button>
+            </div>
+        </section>
+        <section class="row log" v-if="messages.length>0">
+            <div class="small-12 columns">
+                <ul v-for="message in messages">
+                    <li>
+                        {{message}}
+                    </li>
+                </ul>
+            </div>
+        </section>
+    </div>
+
+    <script>
+        new Vue({
+            el: "#app",
+
+            data: {
+                playerHealth: 100,
+                monsterHealth: 100,
+                gameIsRunning: false,
+                HealCounter: 0,
+                messages: []
+
+
+                // lets us know if we need to start the game or is it already on 
+            },
+
+            methods: {
+                startGame: function () {
+                    this.gameIsRunning = true;
+                    this.playerHealth = 100;
+                    this.monsterHealth = 100;
+                    this.HealCounter = 0;
+                    this.messages = [];
+
+
+                },
+                attack: function () {
+                    let monsterDamage = this.calculateDamage(1, 10);
+                    let playerDamage = this.calculateDamage(1, 10);
+                    this.monsterHealth -= monsterDamage;
+                    this.playerHealth -= playerDamage;
+                    this.messages.unshift("You created " + monsterDamage + " damage to the monster");
+                    this.messages.unshift("Monster created " + playerDamage + " damage to you");
+                    this.checkWinner();
+                },
+
+                giveUp: function () {
+                    this.gameIsRunning = false;
+                    this.monsterHealth = 100;
+                    this.playerHealth = 100;
+                    this.HealCounter = 0;
+                    this.messages = [];
+
+                },
+                heal: function () {
+                    if(this.playerHealth<100){
+                    this.HealCounter++;
+                    if (this.HealCounter >= 5) {
+                        if (this.messages[0] == "Max heal limit reached") {
+
+                        }
+                        else {
+                            this.messages.unshift("Max heal limit reached");
+                            return;
+                        }
+                    }
+                    else {
+                        let monsterHeal = this.calculateHeal(1, 5);
+                        let playerHeal = this.calculateHeal(1, 5);
+                        if (this.playerHealth + playerHeal >= 100) {
+                            this.playerHealth = 100;
+                        }
+                        else {
+                            this.playerHealth += playerHeal;
+                        }
+                        if (this.monsterHealth + monsterHeal >= 100) {
+                            this.monsterHealth = 100;
+                        }
+                        else {
+                            this.monsterHealth += monsterHeal;
+                        }
+                    }
+                        this.checkWinner();
+                    }
+                    else{
+                        this.messages.unshift("You are at 100 health, you dont need to heal")
+                    }
+                },
+                specialAttack: function () {
+
+                    let monsterDamage = this.calculateDamage(1, 13)
+                    let playerDamage = this.calculateDamage(1, 10);
+                    this.monsterHealth -= monsterDamage;
+                    this.playerHealth -= playerDamage;
+                    this.messages.unshift("You created " + monsterDamage + " damage to the monster");
+                    this.messages.unshift("Monster created " + playerDamage + " damage to you");
+                    this.checkWinner();
+
+                },
+                gameStart: function () {
+                    this.gameIsRunning = false;
+                },
+                calculateDamage: function (minDamage, maxDamage) {
+                    return Math.floor(Math.random() * (maxDamage - minDamage + 1)) + minDamage;
+                },
+                calculateHeal: function (minHeal, maxHeal) {
+                    return Math.floor(Math.random() * (maxHeal - minHeal + 1)) + minHeal;
+                },
+                checkWinner: function () {
+                    if (this.playerHealth <= 0) {
+                        if (confirm("You Lost! Do you want to play again?")) {
+                            this.startGame();
+                        }
+
+                        else {
+                            this.gameIsRunning = false;
+                            this.monsterHealth = 100;
+                            this.playerHealth = 100;
+                            this.HealCounter = 0;
+                            this.messages=[];
+                        }
+                    }
+                    else if (this.monsterHealth <= 0) {
+                        if (confirm("You Won! Do you want to play again?")) {
+                            this.startGame();
+                        }
+                        else {
+                            this.gameIsRunning = false;
+                            this.playerHealth = 100;
+                            this.monsterHealth = 100;
+                            this.HealCounter = 0;
+                            this.messages=[];
+                        }
+                    }
+
+                },
+
+            }
+        });
+
+
+
+    </script>
+</body>
+
+</html>
